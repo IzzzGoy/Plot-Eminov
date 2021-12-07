@@ -26,6 +26,8 @@ import kotlin.random.Random
 fun App() {
     var exp by remember { mutableStateOf("") }
     var func by remember { mutableStateOf("") }
+    var min by remember { mutableStateOf(0.0) }
+    var max by remember { mutableStateOf(1.0) }
     var count by remember { mutableStateOf(1000) }
     var hist by remember { mutableStateOf(10) }
 
@@ -43,6 +45,31 @@ fun App() {
                 label = {
                     Text(
                         text = "Random numbers count"
+                    )
+                },
+                colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.Transparent)
+            )
+            TextField(
+                value = min.toString(),
+                onValueChange = {
+                    min = it.toDoubleOrNull() ?: min
+                },
+                label = {
+                    Text(
+                        text = "Min"
+                    )
+                },
+                colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.Transparent)
+            )
+            TextField(
+                value = max.toString(),
+                onValueChange = {
+                    if ((it.toDoubleOrNull() ?: max) > min)
+                    max = it.toDoubleOrNull() ?: max
+                },
+                label = {
+                    Text(
+                        text = "Max"
                     )
                 },
                 colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.Transparent)
@@ -89,7 +116,7 @@ fun App() {
                         val random = Random(System.currentTimeMillis())
                         val mainFunc = ExpressionBuilder(exp).variable("x").build()
                         val xSeries = DoubleArray(count) {
-                            random.nextDouble(0.0, 1.0)
+                            random.nextDouble(min, max)
                         }.sortedArray()
                         val reverseFunction = ExpressionBuilder(func).variable("r").build()
                         plot {
@@ -97,12 +124,12 @@ fun App() {
                                 this.nbinsx = hist
                                 xbins.end = 0.95
                                 x.numbers = xSeries.map { reverseFunction.setVariable("r", it).evaluate()}
-                                name = "Random data"
+                                name = exp
                             }
                             trace {
                                 x.doubles = xSeries
                                 y.doubles = xSeries.map { mainFunc.setVariable("x", it).evaluate() * count / hist }.toDoubleArray()
-                                name = "Value"
+                                name = func
                             }
                             layout {
                                 bargap = 0.1
